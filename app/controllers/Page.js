@@ -11,6 +11,7 @@ module.exports = BaseController.extend({
 		this.getContent(type, function() {
 			var v = new View(res, 'inner');
 			v.render(self.content);
+
 		});
 	},
 	getContent: function(type, callback) {
@@ -20,6 +21,7 @@ module.exports = BaseController.extend({
 			if(records.length > 0) {
 				self.content = records[0];
 			}
+			console.log('From the Page Controller>>>>>>>',self.content.text)
 			callback();
 		}, { type: type });
 	}

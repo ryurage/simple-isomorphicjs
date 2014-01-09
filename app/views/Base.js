@@ -13,6 +13,14 @@ module.exports.prototype = {
 	},
 	render: function(data) {
 		if(this.response && this.template) {
+			this.response.contentType('text/html');
+			/*data.text = data.text.replace(/\r\n/g, '<br />');
+			var that = this;
+			data.layout = false;
+			this.response.render(this.template, data, function(err, html){
+			   	that.response.send(html);
+			   	console.log('template======',that.template,'html=============',html)
+			});*/
 			this.response.render(this.template, data);
 		}
 	}

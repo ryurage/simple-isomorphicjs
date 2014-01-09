@@ -30,7 +30,7 @@
                     <section>
                         <img src="{{picture}}" alt="" />
                         <h1>{{title}}</h1>
-                        <p>{{text}}</p>
+                        <p>{{{text}}}</p>
                     </section>
                 </div>
             </div>
