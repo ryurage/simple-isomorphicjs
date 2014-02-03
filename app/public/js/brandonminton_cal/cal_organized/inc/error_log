@@ -1,2 +1,0 @@
-[21-Sep-2009 16:14:00] PHP Warning:  mysql_connect() [<a href='function.mysql-connect'>function.mysql-connect</a>]: Access denied for user 'brandot7_cal'@'localhost' (using password: YES) in /home5/brandot7/public_html/ajax/cal_organized/inc/post.php on line 12
-[21-Sep-2009 16:15:10] PHP Warning:  mysql_connect() [<a href='function.mysql-connect'>function.mysql-connect</a>]: Access denied for user 'brandot7_cal'@'localhost' (using password: YES) in /home5/brandot7/public_html/ajax/cal_organized/inc/post.php on line 12

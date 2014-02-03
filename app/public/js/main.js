@@ -1,7 +1,6 @@
 $(function () {
 
     $('.close').click(function () {
-        console.log('close');
         $('.tab-content').hide();
     });
 
