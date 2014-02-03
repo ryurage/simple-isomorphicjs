@@ -1,4 +1,8 @@
+@green: #334d2b;
+@red: #a4001d;
 body, html {
+    background-color: @green;
+    background-image: url(data:image/png;base64,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);
 	margin: 0;
 	padding: 0;
 	width: 100%;
@@ -7,13 +11,14 @@ body, html {
 	font-family: Arial;
 }
 .container {
+    background-color: #f8f5e6;
 	max-width: 1150px;
 	margin: 0 auto;
     box-shadow: 0 2px 30px #000;
 }
 .content {
 	position: relative;
-	width: 960px;
+	width: 100%;
 	margin: 0 auto;
 }
 .clear {
@@ -28,31 +33,114 @@ body, html {
 nav {
 	position: relative;
 	width: 100%;
-	height: 109px;
-	background: url(/images/nav-bg.jpg) no-repeat;
+	height: 315px;
+	background: url(/images/cam-meg1.jpg) no-repeat;
+    box-shadow: inset 0px -10px 90px 0px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: inset 0px -20px 90px 0px rgba(0, 0, 0, 0.5);
 	.logo {
 		position: absolute;
 		left: 0;
 		top: 31px;
 	}
+    &:after {
+        content: "";
+        width: 100%;
+        height: 320px;
+        margin-top: -22px;
+        display: block;
+        position: absolute;
+        z-index: 10;
+        -webkit-box-shadow: 0px 0px 8px 2px #000000;
+        -moz-box-shadow: 0px 0px 8px 2px #000000;
+        box-shadow: 0px 0px 8px 2px #000000;
+    }
+}
+.cover-menu {
+    width: 170px;
     .menu {
+        float: left;
+        display: block;
+        position: relative;
+        top: 0;
+        border: 1px solid #DDD;
+        border-right-width: 0;
         margin: 38px 0 0 0;
-        padding: 0;
-        list-style-type: none;
-        float: right;
+        padding:0;
+        width: 127px;
         li {
-            margin: 0;
-            padding: 0;
-            float: left;
+            list-style-type: none;
+            display: block;
+            text-shadow: 0px 1px 1px #F2F1F0;
+            font-size: 1.11em;
+            position: relative;
+            border-right-width: 0;
+            border-bottom: 1px solid #DDD;
+            margin: auto;
+            background: whiteSmoke;
+            /* Old browsers */
+            background: -moz-linear-gradient(top, #ffffff 0%, #f2f2f2 100%);
+            /* FF3.6+ */
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ffffff), color-stop(100%, #f2f2f2));
+            /* Chrome,Safari4+ */
+            background: -webkit-linear-gradient(top, #ffffff 0%, #f2f2f2 100%);
+            /* Chrome10+,Safari5.1+ */
+            background: -o-linear-gradient(top, #ffffff 0%, #f2f2f2 100%);
+            /* Opera 11.10+ */
+            background: -ms-linear-gradient(top, #ffffff 0%, #f2f2f2 100%);
+            /* IE10+ */
+            background: linear-gradient(top, #ffffff 0%, #f2f2f2 100%);
+            /* W3C */
+            &:hover {
+                list-style-type: none;
+                display: block;
+                text-shadow: 0px 1px 1px #F2F1F0;
+                font-size: 1.11em;
+                position: relative;
+                border-right-width: 0;
+                border-bottom: 1px solid #DDD;
+                margin: auto;
+                padding: 10px 15px !important;
+                background: whiteSmoke;
+                /* Old browsers */
+                background: -moz-linear-gradient(top, #ffffff 0%, #cccccc 100%);
+                /* FF3.6+ */
+                background: -webkit-gradient(linear, right bottom, right top, color-stop(0%, #ffffff), color-stop(100%, #cccccc));
+                /* Chrome,Safari4+ */
+                background: -webkit-linear-gradient(bottom, #ffffff 0%, #cccccc 100%);
+                /* Chrome10+,Safari5.1+ */
+                background: -o-linear-gradient(bottom, #ffffff 0%, #cccccc 100%);
+                /* Opera 11.10+ */
+                background: -ms-linear-gradient(bottom, #ffffff 0%, #cccccc 100%);
+                /* IE10+ */
+                background: linear-gradient(bottom, #ffffff 0%, #cccccc 100%);
+                /* W3C */
+            }
+            &.current {
+                border-right: none;
+                margin-right: -1px;
+                z-index: 10;
+                background: white !important;
+                position: relative;
+                moz-box-shadow: inset 0 0 35px 5px #fafbfd;
+                -webkit-box-shadow: inset 0 0 35px 5px #fafbfd;
+                box-shadow: inset 0 0 35px 5px #fafbfd;
+            }
+            &.first {
+                border-bottom: 1px solid #DDD;
+            }
+            &.last {
+                border-bottom: none;
+            }
             a {
-                color: #0b4c6e;
+                color: @green;
+                padding: 10px 15px;
                 font-weight: bold;
                 font-size: 18px;
                 text-decoration: none;
                 display: block;
-                margin: 0 0 0 20px;
+                margin: 0 0 0 0;
                 &:hover {
-                    color: lighten(#0b4c6e, 20%);
+                    color: lighten(@red, 20%);
                 }
             }
         }
@@ -61,6 +149,7 @@ nav {
 .footer {
     clear: both;
     .content {
+        background: url(/images/home-teaser-bg.jpg) no-repeat 0px -208px;
         margin: 20px auto 20px auto;
         padding: 10px 0 20px 0;
         color: #999;
@@ -72,3 +161,4 @@ nav {
 @import "home.less";
 @import "inner.less";
 @import "admin.less";
+@import "calendar.less";
