@@ -29,6 +29,7 @@ module.exports = BaseController.extend({
 				if(records.length > 0) {
 					for(var i=0; record=records[i]; i++) {
 						var record = records[i];
+						console.log('contentz: ',record)
 						blogArticles += '\
 							<section class="item">\
 	                            <img src="' + record.picture + '" alt="" />\
@@ -48,6 +49,7 @@ module.exports = BaseController.extend({
 		var self = this;
 		this.content = {}
 		model.getlist(function(err, records) {
+			console.log('records: ',records)
 			if(records.length > 0) {
 				self.content = records[0];
 			}

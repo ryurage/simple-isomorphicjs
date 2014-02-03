@@ -12,7 +12,9 @@ var express = require('express'),
 	Admin = require('./controllers/Admin'),
 	Home = require('./controllers/Home'),
 	Blog = require('./controllers/Blog'),
-	Page = require('./controllers/Page');
+	Page = require('./controllers/Page'),
+	Datastore = require('nedb'),
+	calendarUrl = 'nedb/calendar.db';
 
 // all environments
 // app.set('port', process.env.PORT || 3000);
@@ -33,6 +35,35 @@ if ('development' == app.get('env')) {
   	app.use(express.errorHandler());
 }
 
+nedb = {};
+nedb.calendar = new Datastore({ filename: calendarUrl, autoload: true });
+//nedb.calendar.remove({});
+
+app.post('/save', function(req, res){
+  var jsonData = req.body;
+  console.log(jsonData);
+  res.contentType('json');
+  res.json({ some: JSON.stringify({response:'json'}) });
+  nedb.calendar.insert({
+  	day: jsonData.day,
+  	month: jsonData.month,
+  	year: jsonData.year,
+  	link: jsonData.link,
+  	descript: jsonData.descript,
+  	what: jsonData.what,
+  	start_time: jsonData.start_time,
+  	end_time: jsonData.end_time,
+  	start_date: jsonData.start_date,
+  	end_date: jsonData.end_date,
+  	location: jsonData.location,
+  	repeat_interval: jsonData.repeat_interval,
+  	}, function(err, saved) {
+	  if( err || !saved ) res.end( "Event not saved"); 
+	  else res.end( "Event saved");
+  });
+});
+
+
 MongoClient.connect('mongodb://' + config.mongo.host + ':' + config.mongo.port + '/fastdelivery', function(err, db) {
 	if(err) {
 		console.log('Sorry, there is no mongo db server running.');
@@ -48,6 +79,12 @@ MongoClient.connect('mongodb://' + config.mongo.host + ':' + config.mongo.port +
 			Blog.runArticle(req, res, next);
 		});	
 		app.all('/blog', attachDB, function(req, res, next) {
+			db.collection('fastdelivery', function(err, collection) {
+				collection.find().toArray(function(err, docs) {
+				    console.log('docs: ',docs);
+				});
+			});
+
 			Blog.run(req, res, next);
 		});	
 		app.all('/services', attachDB, function(req, res, next) {
@@ -69,4 +106,23 @@ MongoClient.connect('mongodb://' + config.mongo.host + ':' + config.mongo.port +
 		  	);
 		});
 	}
+});
+
+app.use(function(req, res, next){
+  res.status(404);
+
+  // respond with html page
+  if (req.accepts('html')) {
+    res.send(404, 'Sorry cant find that!');
+    return;
+  }
+
+  // respond with json
+  if (req.accepts('json')) {
+    res.send({ error: 'Not found' });
+    return;
+  }
+
+  // default to plain-text. send()
+  res.type('txt').send('Not found');
 });

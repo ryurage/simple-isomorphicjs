@@ -3,6 +3,9 @@
 	<head>
 		<title>{{ title }}</title>
 		<link rel='stylesheet' href='/stylesheets/style.css' />
+        <script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+        <script src="/js/main.js" type="text/javascript"></script>
+        <script src="/js/brandonminton_cal/public_cal.js" type="text/javascript"></script>
 	</head>
 	<body>
 		<div class="container">
@@ -11,48 +14,51 @@
 			<nav>
 				<div class="content">
 					<a href="/" class="logo">
-						<img src="/images/logo.png" alt="FastDelivery">
+						<!--<img src="/images/logo.png" alt="FastDelivery">-->
 					</a>
-                    <ul class="menu">
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/blog">Blog</a></li>
-                        <li><a href="/services">Services</a></li>
-                        <li><a href="/careers">Careers</a></li>
-                        <li><a href="/contacts">Contacts</a></li>
-                    </ul>
+
                     <br class="clear" />
 				</div>
 			</nav>
-            
+            <div class="cover-menu">
+                <ul class="menu">
+                    <li tab="tab1" class="current"><a href="/">Home</a></li>
+                    <li tab="tab2"><a href="/blog">Blog</a></li>
+                    <li tab="tab3"><a href="/services">Services</a></li>
+                    <li tab="tab4"><a href="/careers">Careers</a></li>
+                    <li tab="tab5" class="last"><a href="/contacts">Contacts</a></li>
+                </ul>
+            </div>
+
             <!-- home page -->
             <div class="home">
-                <h1>Fast As Hell <small>The fastest-growing company of 2012</small></h1>
                 <div class="teaser">
                     <div class="content">
-                        <img src="/images/home-teaser-image.jpg" alt="" class="home-teaser-image" />
+                        <!--<img src="/images/home-teaser-image.jpg" alt="" class="home-teaser-image" />-->
                         <h2>{{bannerTitle}}</h2>
                         <p>{{bannerText}}</p>
-                        <div class="home-teaser-icons">
+                        <!--<div class="home-teaser-icons">
                             <a href="#"><img src="/images/home-teaser-icon1.png" alt=""/></a>
                             <a href="#"><img src="/images/home-teaser-icon2.png" alt=""/></a>
                             <a href="#"><img src="/images/home-teaser-icon3.png" alt=""/></a>
                             <a href="#"><img src="/images/home-teaser-icon4.png" alt=""/></a>
                             <br class="clear" />
-                        </div>
+                        </div>-->
                     </div>
                 </div>
-                <div class="blog-articles">
-                    <div class="content">
-                        {{{blogArticles}}}
-                    </div>
-                    <br class="clear" />
+            </div>
+            <div class="blog-articles">
+                <div class="cal1"></div>
+                <div class="content">
+                    {{{blogArticles}}}
                 </div>
+                <br class="clear" />
             </div>
             
             <!-- footer -->
             <div class="footer">
                 <div class="content">
-                    fast delivery &copy; 2013
+                    Midrealm.org &copy; 2014
                 </div>
             </div>
             

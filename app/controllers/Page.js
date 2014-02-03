@@ -21,7 +21,6 @@ module.exports = BaseController.extend({
 			if(records.length > 0) {
 				self.content = records[0];
 			}
-			console.log('From the Page Controller>>>>>>>',self.content.text)
 			callback();
 		}, { type: type });
 	}
