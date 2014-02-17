@@ -14,7 +14,8 @@ var express = require('express'),
 	Blog = require('./controllers/Blog'),
 	Page = require('./controllers/Page'),
 	Datastore = require('nedb'),
-	calendarUrl = 'nedb/calendar.db';
+	calendarUrl = 'nedb/calendar.db',
+	navPageUrl = 'nedb/navpage.db';
 
 // all environments
 // app.set('port', process.env.PORT || 3000);
@@ -37,6 +38,7 @@ if ('development' == app.get('env')) {
 
 nedb = {};
 nedb.calendar = new Datastore({ filename: calendarUrl, autoload: true });
+nedb.navpage = new Datastore({ filename: navPageUrl, autoload: true });
 //nedb.calendar.remove({});
 
 app.post('/save', function(req, res){
@@ -63,6 +65,7 @@ app.post('/save', function(req, res){
   });
 });
 
+var pages = ['about-us','gallery','contact'];
 
 MongoClient.connect('mongodb://' + config.mongo.host + ':' + config.mongo.port + '/fastdelivery', function(err, db) {
 	if(err) {
@@ -70,6 +73,7 @@ MongoClient.connect('mongodb://' + config.mongo.host + ':' + config.mongo.port +
 	} else {
 		var attachDB = function(req, res, next) {
 			req.db = db;
+			req.navpagedb = nedb.navpage;
 			next();
 		};
 		app.all('/admin*', attachDB, function(req, res, next) {
@@ -87,11 +91,11 @@ MongoClient.connect('mongodb://' + config.mongo.host + ':' + config.mongo.port +
 
 			Blog.run(req, res, next);
 		});	
-		app.all('/services', attachDB, function(req, res, next) {
+		app.all('/about-us', attachDB, function(req, res, next) {
 			Page.run('services', req, res, next);
 		});	
-		app.all('/careers', attachDB, function(req, res, next) {
-			Page.run('careers', req, res, next);
+		app.all('/gallery', attachDB, function(req, res, next) {
+			Page.run('gallery', req, res, next);
 		});	
 		app.all('/contacts', attachDB, function(req, res, next) {
 			Page.run('contacts', req, res, next);

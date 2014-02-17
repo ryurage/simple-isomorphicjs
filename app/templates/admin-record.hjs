@@ -14,7 +14,7 @@
 		<option value="blog">blog</option>
 		<option value="home">home</option>
 		<option value="services">services</option>
-		<option value="careers">careers</option>
+		<option value="gallery">gallery</option>
 		<option value="contacts">contacts</option>
 	</select><br /><br />
 	<input type="submit" value="submit" />

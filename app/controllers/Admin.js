@@ -1,6 +1,7 @@
 var BaseController = require("./Base"),
 	View = require("../views/Base"),
 	model = new (require("../models/ContentModel")),
+	navModel = require("../models/MenuPageModel"),
 	crypto = require("crypto"),
 	fs = require("fs");
 
@@ -12,17 +13,24 @@ module.exports = BaseController.extend({
 		var self = this;
 		if(this.authorize(req)) {
 			model.setDB(req.db);
+			navModel.setDB(req.navpagedb)
 			req.session.fastdelivery = true;
 			req.session.save();
 			var v = new View(res, 'admin');
 			self.del(req, function() {
 				self.form(req, res, function(formMarkup) {
 					self.list(function(listMarkup) {
-						v.render({
-							title: 'Administration',
-							content: 'Welcome to the control panel',
-							list: listMarkup,
-							form: formMarkup
+						self.navItem(req, res, function(navItemMarkup){
+							self.navList(function(navListMarkup) {
+								v.render({
+									title: 'Administration',
+									content: 'Welcome to the control panel',
+									navitem: navItemMarkup,
+									navlist: navListMarkup,
+									list: listMarkup,
+									form: formMarkup
+								});
+							});
 						});
 					});
 				});
@@ -73,6 +81,50 @@ module.exports = BaseController.extend({
 			callback(markup);
 		})
 	},
+	navList: function(callback) {
+		navModel.getlist(function(navpages) {
+			console.log('navpages: ',navpages)
+			var markup = '<table>';
+			markup += '\
+				<tr>\
+					<td><strong>type</strong></td>\
+					<td><strong>title</strong></td>\
+					<td><strong>picture</strong></td>\
+					<td><strong>actions</strong></td>\
+				</tr>\
+			';
+			for(var i=0; navpage = navpages[i]; i++) {
+				markup += '\
+				<tr>\
+					<td>' + navpage.type + '</td>\
+					<td>' + navpage.title + '</td>\
+					<td><img class="list-picture" src="' + navpage.pictureTag + '" /></td>\
+					<td>\
+						<a href="/admin?action=delete&id=' + navpage._id + '">delete</a>&nbsp;&nbsp;\
+						<a href="/admin?action=edit&id=' + navpage._id + '">edit</a>\
+					</td>\
+				</tr>\
+			';
+			}
+			markup += '</table>';
+			callback(markup);
+		});
+	},
+	navItem: function(req, res, callback) {
+		var returnNavForm = function() {
+			res.render('admin-navitem', {}, function(err, html) {
+				callback(html);
+			});
+		};
+		if(req.body && req.body.navpagesubmitted && req.body.navpagesubmitted === 'yes') {
+			var data = { navitem: req.body.navitem };
+			navModel.insert( data, function() {
+				returnNavForm();
+			});
+		} else {
+			returnNavForm();
+		}
+	},
 	form: function(req, res, callback) {
 		var returnTheForm = function() {
 			if(req.query && req.query.action === "edit" && req.query.id) {
@@ -108,8 +160,9 @@ module.exports = BaseController.extend({
 				type: req.body.type,
 				picture: this.handleFileUpload(req),
 				ID: req.body.ID
-			}
-			model[req.body.ID != '' ? 'update' : 'insert'](data, function(err, objects) {
+			};
+			//model[req.body.ID != '' ? 'update' : 'insert'](data, function(err, objects) {
+			navModel.insert( data, function() {
 				returnTheForm();
 			});
 		} else {

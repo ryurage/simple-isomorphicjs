@@ -10,6 +10,8 @@
 			<hr />
 			<div class="left list-column">
 				{{{list}}}
+				{{{navlist}}}
+				{{{navitem}}}
 			</div>
 			<div class="left form-column">
 				{{{form}}}
