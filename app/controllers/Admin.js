@@ -21,15 +21,12 @@ module.exports = BaseController.extend({
 				self.form(req, res, function(formMarkup) {
 					self.list(function(listMarkup) {
 						self.navItem(req, res, function(navItemMarkup){
-							self.navList(function(navListMarkup) {
-								v.render({
-									title: 'Administration',
-									content: 'Welcome to the control panel',
-									navitem: navItemMarkup,
-									navlist: navListMarkup,
-									list: listMarkup,
-									form: formMarkup
-								});
+							v.render({
+								title: 'Administration',
+								content: 'Welcome to the control panel',
+								navitem: navItemMarkup,
+								list: listMarkup,
+								form: formMarkup
 							});
 						});
 					});
@@ -54,36 +51,7 @@ module.exports = BaseController.extend({
 		);
 	},
 	list: function(callback) {
-		model.getlist(function(err, records) {
-			var markup = '<table>';
-			markup += '\
-				<tr>\
-					<td><strong>type</strong></td>\
-					<td><strong>title</strong></td>\
-					<td><strong>picture</strong></td>\
-					<td><strong>actions</strong></td>\
-				</tr>\
-			';
-			for(var i=0; record = records[i]; i++) {
-				markup += '\
-				<tr>\
-					<td>' + record.type + '</td>\
-					<td>' + record.title + '</td>\
-					<td><img class="list-picture" src="' + record.picture + '" /></td>\
-					<td>\
-						<a href="/admin?action=delete&id=' + record.ID + '">delete</a>&nbsp;&nbsp;\
-						<a href="/admin?action=edit&id=' + record.ID + '">edit</a>\
-					</td>\
-				</tr>\
-			';
-			}
-			markup += '</table>';
-			callback(markup);
-		})
-	},
-	navList: function(callback) {
 		navModel.getlist(function(navpages) {
-			console.log('navpages: ',navpages)
 			var markup = '<table>';
 			markup += '\
 				<tr>\
@@ -128,16 +96,16 @@ module.exports = BaseController.extend({
 	form: function(req, res, callback) {
 		var returnTheForm = function() {
 			if(req.query && req.query.action === "edit" && req.query.id) {
-				model.getlist(function(err, records) {
-					if(records.length > 0) {
-						var record = records[0];
+				navModel.getlist(function(navpages) {
+					if (navpages.length > 0) {
+						var navpage = navpages[0];
 						res.render('admin-record', {
-							ID: record.ID,
-							text: record.text,
-							title: record.title,
-							type: '<option value="' + record.type + '">' + record.type + '</option>',
-							picture: record.picture,
-							pictureTag: record.picture != '' ? '<img class="list-picture" src="' + record.picture + '" />' : ''
+							ID: navpage._id,
+							text: navpage.text,
+							title: navpage.title,
+							type: '<option value="' + navpage.type + '">' + navpage.type + '</option>',
+							picture: navpage.picture,
+							pictureTag: navpage.picture != '' ? '<img class="list-picture" src="' + navpage.picture + '" />' : ''
 						}, function(err, html) {
 							callback(html);
 						});
@@ -146,7 +114,7 @@ module.exports = BaseController.extend({
 							callback(html);
 						});
 					}
-				}, {ID: req.query.id});
+				}, {_id: req.query.id});
 			} else {
 				res.render('admin-record', {}, function(err, html) {
 					callback(html);
@@ -159,10 +127,9 @@ module.exports = BaseController.extend({
 				text: req.body.text,
 				type: req.body.type,
 				picture: this.handleFileUpload(req),
-				ID: req.body.ID
+				_id: req.body.ID
 			};
-			//model[req.body.ID != '' ? 'update' : 'insert'](data, function(err, objects) {
-			navModel.insert( data, function() {
+			navModel[req.body.ID != '' ? 'update' : 'insert']( data, function() {
 				returnTheForm();
 			});
 		} else {
@@ -171,7 +138,7 @@ module.exports = BaseController.extend({
 	},
 	del: function(req, callback) {
 		if(req.query && req.query.action === "delete" && req.query.id) {
-			model.remove(req.query.id, callback);
+			navModel.remove(req.query.id, callback);
 		} else {
 			callback();
 		}
