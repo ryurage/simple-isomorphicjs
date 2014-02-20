@@ -1,12 +1,12 @@
 var BaseController = require("./Base"),
 	View = require("../views/Base"),
-	model = new (require("../models/ContentModel"));
+	model = new (require("../models/BaseModel"));
 
 module.exports = BaseController.extend({ 
 	name: "Blog",
 	content: null,
 	run: function(req, res, next) {
-		model.setDB(req.db);
+		model.setDB(req.contentdb);
 		var self = this;
 		this.getContent(function() {
 			var v = new View(res, 'blog');
@@ -14,7 +14,7 @@ module.exports = BaseController.extend({
 		});
 	},
 	runArticle: function(req, res, next) {
-		model.setDB(req.db);
+		model.setDB(req.contentdb);
 		var self = this;
 		this.getArticle(req.params.id, function() {
 			var v = new View(res, 'inner');
@@ -24,7 +24,7 @@ module.exports = BaseController.extend({
 	getContent: function(callback) {
 		var self = this;
 		this.content = {};
-			model.getlist(function(err, records) {
+			model.getlist(function(records) {
 				var blogArticles = '';
 				if(records.length > 0) {
 					for(var i=0; record=records[i]; i++) {
@@ -47,11 +47,11 @@ module.exports = BaseController.extend({
 	getArticle: function(ID, callback) {
 		var self = this;
 		this.content = {}
-		model.getlist(function(err, records) {
+		model.getlist(function(records) {
 			if(records.length > 0) {
 				self.content = records[0];
 			}
 			callback();
-		}, { ID: ID });
+		}, { _id: ID });
 	}
 });

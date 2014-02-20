@@ -1,7 +1,7 @@
 var BaseController = require("./Base"),
 	View = require("../views/Base"),
-	model = new (require("../models/ContentModel")),
-	navModel = require("../models/MenuPageModel"),
+	contentModel = new (require("../models/BaseModel")),
+	menuModel = new (require("../models/BaseModel")),
 	crypto = require("crypto"),
 	fs = require("fs");
 
@@ -12,24 +12,26 @@ module.exports = BaseController.extend({
 	run: function(req, res, next) {
 		var self = this;
 		if(this.authorize(req)) {
-			model.setDB(req.db);
-			navModel.setDB(req.navpagedb)
+			contentModel.setDB(req.contentdb)
+			menuModel.setDB(req.menudb)
 			req.session.fastdelivery = true;
 			req.session.save();
 			var v = new View(res, 'admin');
 			self.del(req, function() {
-				self.form(req, res, function(formMarkup) {
-					self.list(function(listMarkup) {
-						self.navItem(req, res, function(navItemMarkup){
-							v.render({
-								title: 'Administration',
-								content: 'Welcome to the control panel',
-								navitem: navItemMarkup,
-								list: listMarkup,
-								form: formMarkup
+				self.menuList(function(menuListMarkup){
+					self.form(req, res, function(formMarkup) {
+						self.list(function(listMarkup) {
+							self.menuItem(req, res, function(menuItemMarkup){
+								v.render({
+									title: 'Administration',
+									content: 'Welcome to the control panel',
+									menuitem: menuItemMarkup,
+									list: listMarkup,
+									form: formMarkup
+								});
 							});
 						});
-					});
+					}, menuListMarkup);  // give the form the menu list
 				});
 			});
 		} else {
@@ -51,7 +53,7 @@ module.exports = BaseController.extend({
 		);
 	},
 	list: function(callback) {
-		navModel.getlist(function(navpages) {
+		contentModel.getlist(function(contents) {
 			var markup = '<table>';
 			markup += '\
 				<tr>\
@@ -61,15 +63,15 @@ module.exports = BaseController.extend({
 					<td><strong>actions</strong></td>\
 				</tr>\
 			';
-			for(var i=0; navpage = navpages[i]; i++) {
+			for(var i=0; content = contents[i]; i++) {
 				markup += '\
 				<tr>\
-					<td>' + navpage.type + '</td>\
-					<td>' + navpage.title + '</td>\
-					<td><img class="list-picture" src="' + navpage.pictureTag + '" /></td>\
+					<td>' + content.type + '</td>\
+					<td>' + content.title + '</td>\
+					<td><img class="list-picture" src="' + content.picture + '" /></td>\
 					<td>\
-						<a href="/admin?action=delete&id=' + navpage._id + '">delete</a>&nbsp;&nbsp;\
-						<a href="/admin?action=edit&id=' + navpage._id + '">edit</a>\
+						<a href="/admin?action=delete&id=' + content._id + '">delete</a>&nbsp;&nbsp;\
+						<a href="/admin?action=edit&id=' + content._id + '">edit</a>\
 					</td>\
 				</tr>\
 			';
@@ -78,45 +80,55 @@ module.exports = BaseController.extend({
 			callback(markup);
 		});
 	},
-	navItem: function(req, res, callback) {
-		var returnNavForm = function() {
-			res.render('admin-navitem', {}, function(err, html) {
+	menuList: function(callback) {
+		menuModel.getlist(function(menuitems) {
+			var markup = '';
+			for(var i=0; item = menuitems[i]; i++) {
+				markup += '<option value="' + item.menuitem + '">' + item.menuitem + '</option>';
+			}
+			callback(markup);
+		});
+	},
+	menuItem: function(req, res, callback) {
+		var returnMenuForm = function() {
+			res.render('admin-menuitem', {}, function(err, html) {
 				callback(html);
 			});
 		};
-		if(req.body && req.body.navpagesubmitted && req.body.navpagesubmitted === 'yes') {
-			var data = { navitem: req.body.navitem };
-			navModel.insert( data, function() {
-				returnNavForm();
+		if(req.body && req.body.menuitemsubmitted && req.body.menuitemsubmitted === 'yes') {
+			var data = { menuitem: req.body.menuitem };
+			menuModel.insert( data, function() {
+				returnMenuForm();
 			});
 		} else {
-			returnNavForm();
+			returnMenuForm();
 		}
 	},
-	form: function(req, res, callback) {
+	form: function(req, res, callback, menu) {
 		var returnTheForm = function() {
 			if(req.query && req.query.action === "edit" && req.query.id) {
-				navModel.getlist(function(navpages) {
-					if (navpages.length > 0) {
-						var navpage = navpages[0];
+				contentModel.getlist(function(contents) {
+					if (contents.length > 0) {
+						var content = contents[0];
 						res.render('admin-record', {
-							ID: navpage._id,
-							text: navpage.text,
-							title: navpage.title,
-							type: '<option value="' + navpage.type + '">' + navpage.type + '</option>',
-							picture: navpage.picture,
-							pictureTag: navpage.picture != '' ? '<img class="list-picture" src="' + navpage.picture + '" />' : ''
+							ID: content._id,
+							text: content.text,
+							title: content.title,
+							type: '<option value="' + content.type + '">' + content.type + '</option>',
+							picture: content.picture,
+							pictureTag: content.picture != '' ? '<img class="list-picture" src="' + content.picture + '" />' : '',
+							menulist: menu
 						}, function(err, html) {
 							callback(html);
 						});
 					} else {
-						res.render('admin-record', {}, function(err, html) {
+						res.render('admin-record', { menulist: menu }, function(err, html) {
 							callback(html);
 						});
 					}
 				}, {_id: req.query.id});
 			} else {
-				res.render('admin-record', {}, function(err, html) {
+				res.render('admin-record', { menulist: menu }, function(err, html) {
 					callback(html);
 				});
 			}
@@ -129,7 +141,7 @@ module.exports = BaseController.extend({
 				picture: this.handleFileUpload(req),
 				_id: req.body.ID
 			};
-			navModel[req.body.ID != '' ? 'update' : 'insert']( data, function() {
+			contentModel[req.body.ID != '' ? 'update' : 'insert']( data, function() {
 				returnTheForm();
 			});
 		} else {
@@ -138,7 +150,7 @@ module.exports = BaseController.extend({
 	},
 	del: function(req, callback) {
 		if(req.query && req.query.action === "delete" && req.query.id) {
-			navModel.remove(req.query.id, callback);
+			contentModel.remove(req.query.id, callback);
 		} else {
 			callback();
 		}
