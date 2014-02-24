@@ -1,0 +1,5 @@
+<div class="cover-menu">
+    <ul class="menu">
+        {{{menumarkup}}}
+    </ul>
+</div>
