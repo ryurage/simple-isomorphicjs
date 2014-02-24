@@ -1,6 +1,8 @@
 var BaseController = require("./Base"),
 	View = require("../views/Base"),
-	model = new (require("../models/BaseModel"));
+	model = new (require("../models/BaseModel")),
+	defaultMenu = require('../utils/utils').returnJsonFromFile('/../config/default_menu.json');
+require("../utils/utils").capitalize();
 
 module.exports = BaseController.extend({ 
 	name: "Blog",
@@ -10,7 +12,31 @@ module.exports = BaseController.extend({
 		var self = this;
 		this.getContent(function() {
 			var v = new View(res, 'blog');
-			v.render(self.content);
+			self.navMenu(req, res, function(navMenuMarkup){
+				self.content.menunav = navMenuMarkup;
+				v.render(self.content);
+			});
+		});
+	},
+	navMenu: function(req, res, callback) {
+		var markup = '',
+			menuArr = [];
+		
+		defaultMenu.forEach( function(obj){
+		    markup += '<li><a href="' + obj.uri + '">' + obj.name.capitalize() + '</a></li>';
+		    menuArr.push(obj.name);
+		});
+		model.getlist(function(contents) {		
+			if (contents.length > 0) {
+				for(var i=0; record = contents[i]; i++) {
+					if (menuArr.indexOf(record.type) == -1) {
+						markup += '<li><a href="/' + record.type + '">' + record.type.capitalize() + '</a></li>';
+					}
+				}
+			}
+			res.render('menu-nav', {menumarkup: markup}, function(err, html) {
+				callback(html);
+			});
 		});
 	},
 	runArticle: function(req, res, next) {
@@ -18,7 +44,10 @@ module.exports = BaseController.extend({
 		var self = this;
 		this.getArticle(req.params.id, function() {
 			var v = new View(res, 'inner');
-			v.render(self.content);
+			self.navMenu(req, res, function(navMenuMarkup){
+				self.content.menunav = navMenuMarkup;
+				v.render(self.content);
+			});
 		});
 	},
 	getContent: function(callback) {

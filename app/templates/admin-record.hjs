@@ -11,6 +11,7 @@
 	Menu Type:<br />
 	<select name="type">
 		{{{type}}}
+		{{{defaultmenu}}}
 		{{{menulist}}}
 	</select><br /><br />
 	<input type="submit" value="submit" />

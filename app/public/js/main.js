@@ -5,17 +5,18 @@ $(function () {
     });
 
     
-    var items = $('.menu>li').each(function (index, el) {
+    var items = $('.cover-menu li').each(function (index, el) {
     	href = $(el).children().first().attr('href'),
     	url = document.location.pathname.split("/")[1];
     	if (href.charAt(0) == "/") href = href.substr(1);
     	$(el).removeClass('current');
     	if (url === href) {
-    		$(this).addClass('current');
+            console.log(href)
             $(el).addClass('current');
-		} else if (url = '') {
-			$(el).addClass('current');
-		}
+		} else if (href === 'home'){
+            $(el).addClass('current');
+        }
+        
 
         $(this).click(function (e) {
         	//e.preventDefault();

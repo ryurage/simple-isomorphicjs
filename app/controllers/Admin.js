@@ -3,7 +3,8 @@ var BaseController = require("./Base"),
 	contentModel = new (require("../models/BaseModel")),
 	menuModel = new (require("../models/BaseModel")),
 	crypto = require("crypto"),
-	fs = require("fs");
+	fs = require("fs"),
+	defaultMenu = require('../utils/utils').returnJsonFromFile('/../config/default_menu.json');
 
 module.exports = BaseController.extend({ 
 	name: "Admin",
@@ -18,10 +19,10 @@ module.exports = BaseController.extend({
 			req.session.save();
 			var v = new View(res, 'admin');
 			self.del(req, function() {
-				self.menuList(function(menuListMarkup){
-					self.form(req, res, function(formMarkup) {
-						self.list(function(listMarkup) {
-							self.menuItem(req, res, function(menuItemMarkup){
+				self.menuItem(req, res, function(menuItemMarkup){
+					self.menuList(function(menuListMarkup){
+						self.form(req, res, function(formMarkup) {
+							self.list(function(listMarkup) {
 								v.render({
 									title: 'Administration',
 									content: 'Welcome to the control panel',
@@ -30,9 +31,9 @@ module.exports = BaseController.extend({
 									form: formMarkup
 								});
 							});
-						});
-					}, menuListMarkup);  // give the form the menu list
-				});
+						}, menuListMarkup);  // give the form the menu list
+					});
+				}); 
 			});
 		} else {
 			var v = new View(res, 'admin-login');
@@ -75,7 +76,7 @@ module.exports = BaseController.extend({
 					</td>\
 				</tr>\
 			';
-			}
+			} 
 			markup += '</table>';
 			callback(markup);
 		});
@@ -97,14 +98,23 @@ module.exports = BaseController.extend({
 		};
 		if(req.body && req.body.menuitemsubmitted && req.body.menuitemsubmitted === 'yes') {
 			var data = { menuitem: req.body.menuitem };
-			menuModel.insert( data, function() {
-				returnMenuForm();
+			menuModel.insert( data, function(err) {
+				if (err) {
+					console.log('Whoa there...',err.message);
+					returnMenuForm();
+				} else {
+					console.log('data inserted to menuItem::::>> ',data)
+					returnMenuForm();
+				}
 			});
 		} else {
 			returnMenuForm();
 		}
 	},
 	form: function(req, res, callback, menu) {
+		var menuItems = '';
+		defaultMenu.forEach(function(obj) { menuItems += '<option>' + obj.name + '</option>'; });
+
 		var returnTheForm = function() {
 			if(req.query && req.query.action === "edit" && req.query.id) {
 				contentModel.getlist(function(contents) {
@@ -117,18 +127,25 @@ module.exports = BaseController.extend({
 							type: '<option value="' + content.type + '">' + content.type + '</option>',
 							picture: content.picture,
 							pictureTag: content.picture != '' ? '<img class="list-picture" src="' + content.picture + '" />' : '',
+							defaultmenu: menuItems,
 							menulist: menu
 						}, function(err, html) {
 							callback(html);
 						});
 					} else {
-						res.render('admin-record', { menulist: menu }, function(err, html) {
+						res.render('admin-record', { 
+							defaultmenu: menuItems,
+							menulist: menu 
+						}, function(err, html) {
 							callback(html);
 						});
 					}
 				}, {_id: req.query.id});
 			} else {
-				res.render('admin-record', { menulist: menu }, function(err, html) {
+				res.render('admin-record', { 
+					defaultmenu: menuItems,
+					menulist: menu 
+				}, function(err, html) {
 					callback(html);
 				});
 			}

@@ -11,7 +11,8 @@ var express = require('express'),
 	Datastore = require('nedb'),
 	calendarUrl = 'nedb/calendar.db',
 	contentUrl = 'nedb/content.db',
-	menuUrl = 'nedb/menu.db';
+	menuUrl = 'nedb/menu.db',
+	defaultMenu = require('./utils/utils').returnJsonFromFile('/../config/default_menu.json');
 
 function createVariables(variables) {
     for (var varName in variables) {
@@ -91,6 +92,7 @@ var pages = ['about-us','gallery','contact'];
 var attachDB = function(req, res, next) {
 	req.contentdb = nedb.content;
 	req.menudb = nedb.menu;
+	req.menudb.ensureIndex({ fieldName: 'menuitem', unique: true }, function (err) {});
 	next();
 };
 app.all('/admin*', attachDB, function(req, res, next) {
@@ -102,22 +104,25 @@ app.all('/blog/:id', attachDB, function(req, res, next) {
 app.all('/blog', attachDB, function(req, res, next) {
 	module.exports.Blog.run(req, res, next);
 });	
-app.all('/about-us', attachDB, function(req, res, next) {
-	module.exports.Page.run('services', req, res, next);
-});	
-app.all('/gallery', attachDB, function(req, res, next) {
-	module.exports.Page.run('gallery', req, res, next);
-});	
-app.all('/contacts', attachDB, function(req, res, next) {
-	module.exports.Page.run('contacts', req, res, next);
-});	
+app.all('/home', attachDB, function(req, res, next) {
+	res.redirect('/');
+});		
 app.all('/', attachDB, function(req, res, next) {
 	module.exports.Home.run(req, res, next);
-});		
-http.createServer(app).listen(config.port, function() {
-  	console.log(
-  		'\nExpress server listening on port ' + config.port
-  	);
+});
+// here we grab the admin generated pages and create a route for them
+nedb.menu.find({}, function (err, menuitems){ 
+	for(var i=0; record = menuitems[i]; i++) {
+		var menuitem = record.menuitem;
+		app.all('/' + menuitem, attachDB, function(req, res, next) {
+			module.exports.Page.run(menuitem, req, res, next);
+		});	
+	}
+	http.createServer(app).listen(config.port, function() {
+	  	console.log(
+	  		'\nExpress server listening on port ' + config.port
+	  	);
+	});
 });
 
 

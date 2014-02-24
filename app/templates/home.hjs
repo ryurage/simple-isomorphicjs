@@ -20,15 +20,7 @@
                     <br class="clear" />
 				</div>
 			</nav>
-            <div class="cover-menu">
-                <ul class="menu">
-                    <li tab="tab1" class="current"><a href="/">Home</a></li>
-                    <li tab="tab2"><a href="/blog">Blog</a></li>
-                    <li tab="tab3"><a href="/services">Services</a></li>
-                    <li tab="tab4"><a href="/gallery">Gallery</a></li>
-                    <li tab="tab5" class="last"><a href="/contacts">Contacts</a></li>
-                </ul>
-            </div>
+            {{{menunav}}}
 
             <!-- home page -->
             <div class="home">
