@@ -11,7 +11,6 @@ module.exports = BaseController.extend({
 		model.setDB(req.contentdb);
 		var self = this;
 		this.getContent(type, function() {
-			console.log(self.content)
 			var v = new View(res, 'inner');
 			self.navMenu(req, res, function(navMenuMarkup){
 				self.content.menunav = navMenuMarkup;
@@ -47,7 +46,6 @@ module.exports = BaseController.extend({
 			if(records.length > 0) {
 				self.content = records[0];
 			}
-			console.log('self content>>> ',self.content)
 			callback();
 		}, { type: type });
 	}

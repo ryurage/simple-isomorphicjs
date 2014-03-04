@@ -12,6 +12,7 @@ var express = require('express'),
 	calendarUrl = 'nedb/calendar.db',
 	contentUrl = 'nedb/content.db',
 	menuUrl = 'nedb/menu.db',
+	menuHandler = require('./controllers/MenuHandler')
 	defaultMenu = require('./utils/utils').returnJsonFromFile('/../config/default_menu.json');
 
 function createVariables(variables) {
@@ -95,6 +96,10 @@ var attachDB = function(req, res, next) {
 	req.menudb.ensureIndex({ fieldName: 'menuitem', unique: true }, function (err) {});
 	next();
 };
+var redir = function(req, res, next){
+	res.redirect('/admin')
+}
+app.post('/addmenuitem', menuHandler.addMenuItem, redir);
 app.all('/admin*', attachDB, function(req, res, next) {
 	module.exports.Admin.run(req, res, next);
 });			
@@ -107,44 +112,44 @@ app.all('/blog', attachDB, function(req, res, next) {
 app.all('/home', attachDB, function(req, res, next) {
 	res.redirect('/');
 });		
+
+// now capture everything in your menus.
+menuHandler.setMenuListFromDB(nedb.menu)
+app.get('/:routename', attachDB, function(req, res, next){
+    // get current items and check if requested route is in there.
+
+    var menuitems = menuHandler.getMenuList();
+    if (menuitems.indexOf(req.params.routename) !== -1) {
+        module.exports.Page.run(req.params.routename, req, res, next);
+    } else {
+        // if we missed the route, render some default page or whatever.
+        app.use(function(req, res, next){
+			res.status(404);
+
+			// respond with html page
+			if (req.accepts('html')) {
+			res.send(404, 'Sorry cant find that!');
+			return;
+			}
+
+			// respond with json
+			if (req.accepts('json')) {
+			res.send({ error: 'Not found' });
+			return;
+			}
+
+			// default to plain-text. send()
+			res.type('txt').send('Not found');
+		});
+    }
+});
+
 app.all('/', attachDB, function(req, res, next) {
 	module.exports.Home.run(req, res, next);
 });
-// here we grab the admin generated pages and create a route for them
-nedb.menu.find({}, function (err, menuitems){ 
-	for(var i=0; record = menuitems[i]; i++) {
-		var menuitem = record.menuitem;
-		app.all('/' + menuitem, attachDB, function(req, res, next) {
-			module.exports.Page.run(menuitem, req, res, next);
-		});	
-	}
-	http.createServer(app).listen(config.port, function() {
-	  	console.log(
-	  		'\nExpress server listening on port ' + config.port
-	  	);
-	});
+http.createServer(app).listen(config.port, function() {
+  	console.log(
+  		'\nExpress server listening on port ' + config.port
+  	);
 });
 
-
-
-
-    
-    
-app.use(function(req, res, next){
-  res.status(404);
-
-  // respond with html page
-  if (req.accepts('html')) {
-    res.send(404, 'Sorry cant find that!');
-    return;
-  }
-
-  // respond with json
-  if (req.accepts('json')) {
-    res.send({ error: 'Not found' });
-    return;
-  }
-
-  // default to plain-text. send()
-  res.type('txt').send('Not found');
-});

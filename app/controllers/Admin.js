@@ -4,6 +4,7 @@ var BaseController = require("./Base"),
 	menuModel = new (require("../models/BaseModel")),
 	crypto = require("crypto"),
 	fs = require("fs"),
+	menuHandler = require('./MenuHandler'),
 	defaultMenu = require('../utils/utils').returnJsonFromFile('/../config/default_menu.json');
 
 module.exports = BaseController.extend({ 
@@ -82,13 +83,12 @@ module.exports = BaseController.extend({
 		});
 	},
 	menuList: function(callback) {
-		menuModel.getlist(function(menuitems) {
-			var markup = '';
-			for(var i=0; item = menuitems[i]; i++) {
-				markup += '<option value="' + item.menuitem + '">' + item.menuitem + '</option>';
-			}
-			callback(markup);
+		var menuitems = menuHandler.getMenuList(),
+			markup = '';
+		menuitems.map( function(item) {
+			markup += '<option value="' + item + '">' + item + '</option>';
 		});
+		callback(markup);
 	},
 	menuItem: function(req, res, callback) {
 		var returnMenuForm = function() {
@@ -96,20 +96,8 @@ module.exports = BaseController.extend({
 				callback(html);
 			});
 		};
-		if(req.body && req.body.menuitemsubmitted && req.body.menuitemsubmitted === 'yes') {
-			var data = { menuitem: req.body.menuitem };
-			menuModel.insert( data, function(err) {
-				if (err) {
-					console.log('Whoa there...',err.message);
-					returnMenuForm();
-				} else {
-					console.log('data inserted to menuItem::::>> ',data)
-					returnMenuForm();
-				}
-			});
-		} else {
-			returnMenuForm();
-		}
+
+		returnMenuForm();
 	},
 	form: function(req, res, callback, menu) {
 		var menuItems = '';

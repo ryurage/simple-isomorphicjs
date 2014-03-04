@@ -1,6 +1,6 @@
 <hr />
 <br />
-<form action="/admin" method="post" enctype="multipart/form-data">
+<form action="/addmenuitem" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="menuitemsubmitted" value="yes">
 	Create a new Menu Type:<br />
 	<input type="text" name="menuitem" value="" /><br /><br />
