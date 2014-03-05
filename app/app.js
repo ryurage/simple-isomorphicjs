@@ -8,13 +8,35 @@ var express = require('express'),
 	path = require('path'),
 	config = require('./config')(),
 	app = express(),
-	MongoClient = require('mongodb').MongoClient,
-	Admin = require('./controllers/Admin'),
-	Home = require('./controllers/Home'),
-	Blog = require('./controllers/Blog'),
-	Page = require('./controllers/Page'),
 	Datastore = require('nedb'),
-	calendarUrl = 'nedb/calendar.db';
+	calendarUrl = 'nedb/calendar.db',
+	contentUrl = 'nedb/content.db',
+	menuUrl = 'nedb/menu.db',
+	menuHandler = require('./controllers/MenuHandler')
+	defaultMenu = require('./utils/utils').returnJsonFromFile('/../config/default_menu.json');
+
+function createVariables(variables) {
+    for (var varName in variables) {
+    	//console.log(variables)
+        varName = variables[varName.split('.')[0]];
+    }
+}
+
+// below we'll dynamically load the controllers
+Object.prototype.extend = function(x) {
+   for(i in x)
+      this[i] = x[i];
+};
+require('fs').readdirSync('./controllers').forEach(function (file) {
+  // If its the current file ignore it 
+  if (file === 'index.js') return;
+  // Prepare empty object to store module 
+  var mod = {};
+  // Store module with its name (from filename)
+  mod[path.basename(file, '.js')] = require("./controllers/" + file);
+  // Extend module.exports
+  module.exports.extend(mod);
+});
 
 // all environments
 // app.set('port', process.env.PORT || 3000);
@@ -37,6 +59,8 @@ if ('development' == app.get('env')) {
 
 nedb = {};
 nedb.calendar = new Datastore({ filename: calendarUrl, autoload: true });
+nedb.content = new Datastore({ filename: contentUrl, autoload: true });
+nedb.menu = new Datastore({ filename: menuUrl, autoload: true });
 //nedb.calendar.remove({});
 
 app.post('/save', function(req, res){
@@ -63,66 +87,69 @@ app.post('/save', function(req, res){
   });
 });
 
+var pages = ['about-us','gallery','contact'];
 
-MongoClient.connect('mongodb://' + config.mongo.host + ':' + config.mongo.port + '/fastdelivery', function(err, db) {
-	if(err) {
-		console.log('Sorry, there is no mongo db server running.');
-	} else {
-		var attachDB = function(req, res, next) {
-			req.db = db;
-			next();
-		};
-		app.all('/admin*', attachDB, function(req, res, next) {
-			Admin.run(req, res, next);
-		});			
-		app.all('/blog/:id', attachDB, function(req, res, next) {
-			Blog.runArticle(req, res, next);
-		});	
-		app.all('/blog', attachDB, function(req, res, next) {
-			db.collection('fastdelivery', function(err, collection) {
-				collection.find().toArray(function(err, docs) {
-				    console.log('docs: ',docs);
-				});
-			});
 
-			Blog.run(req, res, next);
-		});	
-		app.all('/services', attachDB, function(req, res, next) {
-			Page.run('services', req, res, next);
-		});	
-		app.all('/careers', attachDB, function(req, res, next) {
-			Page.run('careers', req, res, next);
-		});	
-		app.all('/contacts', attachDB, function(req, res, next) {
-			Page.run('contacts', req, res, next);
-		});	
-		app.all('/', attachDB, function(req, res, next) {
-			Home.run(req, res, next);
-		});		
-		http.createServer(app).listen(config.port, function() {
-		  	console.log(
-		  		'Successfully connected to mongodb://' + config.mongo.host + ':' + config.mongo.port,
-		  		'\nExpress server listening on port ' + config.port
-		  	);
+var attachDB = function(req, res, next) {
+	req.contentdb = nedb.content;
+	req.menudb = nedb.menu;
+	req.menudb.ensureIndex({ fieldName: 'menuitem', unique: true }, function (err) {});
+	next();
+};
+var redir = function(req, res, next){
+	res.redirect('/admin')
+}
+app.post('/addmenuitem', menuHandler.addMenuItem, redir);
+app.all('/admin*', attachDB, function(req, res, next) {
+	module.exports.Admin.run(req, res, next);
+});			
+app.all('/blog/:id', attachDB, function(req, res, next) {
+	module.exports.Blog.runArticle(req, res, next);
+});	
+app.all('/blog', attachDB, function(req, res, next) {
+	module.exports.Blog.run(req, res, next);
+});	
+app.all('/home', attachDB, function(req, res, next) {
+	res.redirect('/');
+});		
+
+// now capture everything in your menus.
+menuHandler.setMenuListFromDB(nedb.menu)
+app.get('/:routename', attachDB, function(req, res, next){
+    // get current items and check if requested route is in there.
+
+    var menuitems = menuHandler.getMenuList();
+    if (menuitems.indexOf(req.params.routename) !== -1) {
+        module.exports.Page.run(req.params.routename, req, res, next);
+    } else {
+        // if we missed the route, render some default page or whatever.
+        app.use(function(req, res, next){
+			res.status(404);
+
+			// respond with html page
+			if (req.accepts('html')) {
+			res.send(404, 'Sorry cant find that!');
+			return;
+			}
+
+			// respond with json
+			if (req.accepts('json')) {
+			res.send({ error: 'Not found' });
+			return;
+			}
+
+			// default to plain-text. send()
+			res.type('txt').send('Not found');
 		});
-	}
+    }
 });
 
-app.use(function(req, res, next){
-  res.status(404);
-
-  // respond with html page
-  if (req.accepts('html')) {
-    res.send(404, 'Sorry cant find that!');
-    return;
-  }
-
-  // respond with json
-  if (req.accepts('json')) {
-    res.send({ error: 'Not found' });
-    return;
-  }
-
-  // default to plain-text. send()
-  res.type('txt').send('Not found');
+app.all('/', attachDB, function(req, res, next) {
+	module.exports.Home.run(req, res, next);
 });
+http.createServer(app).listen(config.port, function() {
+  	console.log(
+  		'\nExpress server listening on port ' + config.port
+  	);
+});
+

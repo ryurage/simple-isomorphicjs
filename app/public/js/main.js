@@ -5,17 +5,18 @@ $(function () {
     });
 
     
-    var items = $('.menu>li').each(function (index, el) {
+    var items = $('.cover-menu li').each(function (index, el) {
     	href = $(el).children().first().attr('href'),
     	url = document.location.pathname.split("/")[1];
     	if (href.charAt(0) == "/") href = href.substr(1);
     	$(el).removeClass('current');
     	if (url === href) {
-    		$(this).addClass('current');
+            console.log(href)
             $(el).addClass('current');
-		} else if (url = '') {
-			$(el).addClass('current');
-		}
+		} else if (href === 'home'){
+            $(el).addClass('current');
+        }
+        
 
         $(this).click(function (e) {
         	//e.preventDefault();
@@ -51,32 +52,6 @@ $(function () {
     $(window).hashchange();*/
 
     // Create a Calendar!
-    var cali = QuickCal('cal1', 2, 2014);
-    var jsontest = '{"day":"3","month":"2","year":"2014","link":"www.google.com","descript":"tester","what":"big party","start_time":"9pm","end_time":"1am","start_date":"2-24-2014","end_date":"2-25-2014","location":"my house","repeat_interval":"does not repeat"}';
-
-    $('.today').on('click', function() {
-            $.ajax({
-                url: "/save",
-                type: "POST",
-                dataType: "json",
-                data: jsontest,
-                contentType: "application/json",
-                cache: false,
-                timeout: 5000,
-                complete: function() {
-                  //called when complete
-                  console.log('process complete');
-                },
-
-                success: function(data) {
-                  console.log(data);
-                  console.log('process sucess');
-               },
-
-                error: function() {
-                  console.log('process error');
-                },
-              });
-        });
+    var d = new Date();
+    var cali = QuickCal('cal1', d.getMonth()+1, d.getFullYear());
 });
-//$(document).ready(myFunction);

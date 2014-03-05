@@ -22,6 +22,8 @@ module.exports.prototype = {
 			   	console.log('template======',that.template,'html=============',html)
 			});*/
 			this.response.render(this.template, data);
+		} else {
+			//console.log('response: ',data)
 		}
 	}
 }

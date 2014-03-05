@@ -1,8 +1,11 @@
 var BaseController = require("./Base"),
 	View = require("../views/Base"),
-	model = new (require("../models/ContentModel")),
+	contentModel = new (require("../models/BaseModel")),
+	menuModel = new (require("../models/BaseModel")),
 	crypto = require("crypto"),
-	fs = require("fs");
+	fs = require("fs"),
+	menuHandler = require('./MenuHandler'),
+	defaultMenu = require('../utils/utils').returnJsonFromFile('/../config/default_menu.json');
 
 module.exports = BaseController.extend({ 
 	name: "Admin",
@@ -11,21 +14,27 @@ module.exports = BaseController.extend({
 	run: function(req, res, next) {
 		var self = this;
 		if(this.authorize(req)) {
-			model.setDB(req.db);
+			contentModel.setDB(req.contentdb)
+			menuModel.setDB(req.menudb)
 			req.session.fastdelivery = true;
 			req.session.save();
 			var v = new View(res, 'admin');
 			self.del(req, function() {
-				self.form(req, res, function(formMarkup) {
-					self.list(function(listMarkup) {
-						v.render({
-							title: 'Administration',
-							content: 'Welcome to the control panel',
-							list: listMarkup,
-							form: formMarkup
-						});
+				self.menuItem(req, res, function(menuItemMarkup){
+					self.menuList(function(menuListMarkup){
+						self.form(req, res, function(formMarkup) {
+							self.list(function(listMarkup) {
+								v.render({
+									title: 'Administration',
+									content: 'Welcome to the control panel',
+									menuitem: menuItemMarkup,
+									list: listMarkup,
+									form: formMarkup
+								});
+							});
+						}, menuListMarkup);  // give the form the menu list
 					});
-				});
+				}); 
 			});
 		} else {
 			var v = new View(res, 'admin-login');
@@ -46,7 +55,7 @@ module.exports = BaseController.extend({
 		);
 	},
 	list: function(callback) {
-		model.getlist(function(err, records) {
+		contentModel.getlist(function(contents) {
 			var markup = '<table>';
 			markup += '\
 				<tr>\
@@ -56,47 +65,75 @@ module.exports = BaseController.extend({
 					<td><strong>actions</strong></td>\
 				</tr>\
 			';
-			for(var i=0; record = records[i]; i++) {
+			for(var i=0; content = contents[i]; i++) {
 				markup += '\
 				<tr>\
-					<td>' + record.type + '</td>\
-					<td>' + record.title + '</td>\
-					<td><img class="list-picture" src="' + record.picture + '" /></td>\
+					<td>' + content.type + '</td>\
+					<td>' + content.title + '</td>\
+					<td><img class="list-picture" src="' + content.picture + '" /></td>\
 					<td>\
-						<a href="/admin?action=delete&id=' + record.ID + '">delete</a>&nbsp;&nbsp;\
-						<a href="/admin?action=edit&id=' + record.ID + '">edit</a>\
+						<a href="/admin?action=delete&id=' + content._id + '">delete</a>&nbsp;&nbsp;\
+						<a href="/admin?action=edit&id=' + content._id + '">edit</a>\
 					</td>\
 				</tr>\
 			';
-			}
+			} 
 			markup += '</table>';
 			callback(markup);
-		})
+		});
 	},
-	form: function(req, res, callback) {
+	menuList: function(callback) {
+		var menuitems = menuHandler.getMenuList(),
+			markup = '';
+		menuitems.map( function(item) {
+			markup += '<option value="' + item + '">' + item + '</option>';
+		});
+		callback(markup);
+	},
+	menuItem: function(req, res, callback) {
+		var returnMenuForm = function() {
+			res.render('admin-menuitem', {}, function(err, html) {
+				callback(html);
+			});
+		};
+
+		returnMenuForm();
+	},
+	form: function(req, res, callback, menu) {
+		var menuItems = '';
+		defaultMenu.forEach(function(obj) { menuItems += '<option>' + obj.name + '</option>'; });
+
 		var returnTheForm = function() {
 			if(req.query && req.query.action === "edit" && req.query.id) {
-				model.getlist(function(err, records) {
-					if(records.length > 0) {
-						var record = records[0];
+				contentModel.getlist(function(contents) {
+					if (contents.length > 0) {
+						var content = contents[0];
 						res.render('admin-record', {
-							ID: record.ID,
-							text: record.text,
-							title: record.title,
-							type: '<option value="' + record.type + '">' + record.type + '</option>',
-							picture: record.picture,
-							pictureTag: record.picture != '' ? '<img class="list-picture" src="' + record.picture + '" />' : ''
+							ID: content._id,
+							text: content.text,
+							title: content.title,
+							type: '<option value="' + content.type + '">' + content.type + '</option>',
+							picture: content.picture,
+							pictureTag: content.picture != '' ? '<img class="list-picture" src="' + content.picture + '" />' : '',
+							defaultmenu: menuItems,
+							menulist: menu
 						}, function(err, html) {
 							callback(html);
 						});
 					} else {
-						res.render('admin-record', {}, function(err, html) {
+						res.render('admin-record', { 
+							defaultmenu: menuItems,
+							menulist: menu 
+						}, function(err, html) {
 							callback(html);
 						});
 					}
-				}, {ID: req.query.id});
+				}, {_id: req.query.id});
 			} else {
-				res.render('admin-record', {}, function(err, html) {
+				res.render('admin-record', { 
+					defaultmenu: menuItems,
+					menulist: menu 
+				}, function(err, html) {
 					callback(html);
 				});
 			}
@@ -107,9 +144,9 @@ module.exports = BaseController.extend({
 				text: req.body.text,
 				type: req.body.type,
 				picture: this.handleFileUpload(req),
-				ID: req.body.ID
-			}
-			model[req.body.ID != '' ? 'update' : 'insert'](data, function(err, objects) {
+				_id: req.body.ID
+			};
+			contentModel[req.body.ID != '' ? 'update' : 'insert']( data, function() {
 				returnTheForm();
 			});
 		} else {
@@ -118,7 +155,7 @@ module.exports = BaseController.extend({
 	},
 	del: function(req, callback) {
 		if(req.query && req.query.action === "delete" && req.query.id) {
-			model.remove(req.query.id, callback);
+			contentModel.remove(req.query.id, callback);
 		} else {
 			callback();
 		}

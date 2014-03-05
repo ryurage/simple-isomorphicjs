@@ -8,14 +8,11 @@
 	<textarea name="text">{{text}}</textarea><br />
 	Picture:<br />
 	<input type="file" name="picture" /><br />{{{pictureTag}}}<br />
-	Type:<br />
+	Menu Type:<br />
 	<select name="type">
-		{{{type}}
-		<option value="blog">blog</option>
-		<option value="home">home</option>
-		<option value="services">services</option>
-		<option value="careers">careers</option>
-		<option value="contacts">contacts</option>
+		{{{type}}}
+		{{{defaultmenu}}}
+		{{{menulist}}}
 	</select><br /><br />
 	<input type="submit" value="submit" />
 </form>
