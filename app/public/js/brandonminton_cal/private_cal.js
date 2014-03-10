@@ -4,13 +4,14 @@ var calProto = {
     year: new Date().getFullYear(),
     obj: 'body'
 };
-var QuickCal = function(obj, month, year) {
+var QuickCal = function(obj, month, year, calsize) {
     var cal = cal = Object.create( calProto ); // our factory function
     
     // public variables
     cal.month = month || cal.month;
     cal.year = year || cal.year;
     cal.html = '';
+    cal.calsize = calsize || '';
     
     // private variables
     var daysInMonth = new Date(cal.year, cal.month, 0).getDate(),
@@ -93,8 +94,9 @@ var QuickCal = function(obj, month, year) {
         var day = cal.day,
             month = cal.month,
             year = cal.year,
+            size = cal.calsize,
             headerTitle = cal.shortMonth + ' ' + year;
-            cal.html = '<table cellspacing="0" cellpadding="0" class="calendar">' +
+            cal.html = '<table cellspacing="0" cellpadding="0" class="calendar ' + size + '">' +
             '<tr>' +
             '<th class="header">&nbsp;<a href="" class="headerNav prevYear" title="Previous Year"><<</a></th>' +
             '<th class="header">&nbsp;<a href="" class="headerNav prevMonth" title="Previous Month"><</a></th>' +
@@ -116,9 +118,10 @@ var QuickCal = function(obj, month, year) {
 			for (var i = 0; i < 7; i++) {
 				// if today
                 var cellValue = weekArr[j][i],
-                    aclass = (cal.day == cellValue && proto.month == cal.month && proto.year == cal.year) ? ' class="today calendar-day"' : ' class="calendar-day"';
+                    aclass = (cal.day == cellValue && proto.month == cal.month && proto.year == cal.year) ? ' class="today calendar-day"' : ' class="calendar-day"',
+                    dataAttr = ' data-date="' + cal.month + '/' + cellValue + '/' + cal.year + '"';
                 //cellValue = (cellValue < 10 && (toString.call(cellValue) == '[object Number]')) ? '0' + cellValue : cellValue;
-                cal.html+= '<td' + aclass + '>' + cellValue + '</td>';
+                cal.html += (cellValue !== '') ? '<td' + aclass + dataAttr + '>' + cellValue + '</td>' : '<td></td>';
                 }
             cal.html += '</tr>';
 		}
@@ -128,7 +131,9 @@ var QuickCal = function(obj, month, year) {
     cal.createFooter = function() {
         var proto = cal.__proto__,
             shortMonth = new Date(proto.year + ',' + proto.month + ',' + proto.day).toDateString().substr(4,3);
-		cal.html += '<tr><td colspan="7" class="footer"><a href="" class="footerNav">Today is ' + shortMonth + ' ' + proto.day +',  ' + proto.year + '</a></td></tr></table>';
+        if (cal.calsize === '') {
+		  cal.html += '<tr><td colspan="7" class="footer"><a href="" class="footerNav">Today is ' + shortMonth + ' ' + proto.day +',  ' + proto.year + '</a></td></tr></table>';
+        }
         
         return this;
 	};

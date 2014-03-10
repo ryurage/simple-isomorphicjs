@@ -56,7 +56,7 @@ module.exports = BaseController.extend({
 	},
 	list: function(callback) {
 		contentModel.getlist(function(contents) {
-			var markup = '<table>';
+			var markup = '<table class="admin-pages">';
 			markup += '\
 				<tr>\
 					<td><strong>type</strong></td>\
