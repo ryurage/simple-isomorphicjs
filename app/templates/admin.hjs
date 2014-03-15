@@ -16,6 +16,7 @@
 			<hr />
 			<div class="left list-column">
 				{{{list}}}
+				<br />
 				<div class="cal1"></div>
 			</div>
 			<div class="left form-column">

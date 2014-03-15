@@ -586,3 +586,12 @@ legend {
 .mini-cal {
   width: 100px;
 }
+.time-list {
+  background-color: #ffffff;
+  position: absolute;
+  display: none;
+}
+.close-event-form {
+  float: right;
+  cursor: pointer;
+}

@@ -1,15 +1,16 @@
 $(function () {
 	var mouseX = 0,
 		mouseY = 0,
+		classes = ['start-time','end-time'],
 		eventForm = '<fieldset>'+
-					'<legend>Add Event Form</legend><span onclick="closeEventForm();" class="close">X</span>'+
+					'<legend>Add Event Form</legend><span class="close-event-form">X</span>'+
 					'<form action="" name="actionform" id="actionform">'+ // turn this on!
 					  '<div id="smallcal1" style="position:absolute;visibility:hidden;background-color:white;top:0px;"></div>'+
 					 '<form action="javascript:get(document.getElementById(\'actionform\'));closeEventForm();" name="actionform" id="actionform">'+
 					 'What <input type="text" id="what" /><br /><br />'+
-					 'When <div id="when"><input type="text" class="calendar-start-date calendar-dates"  value="" size=10 " title="enter the start date" name="sdate" id="sdate">&nbsp;&nbsp;<div id="start_t"></div> to '+
-					  	  '<input type="text" class="calendar-end-date calendar-dates"  value="" size=10 title="enter the end date" name="edate" id="edate">&nbsp;&nbsp;<div id="end_t"></div>'+
-						  '<input type="checkbox" id="all_day" name="all_day" onclick="allDayCheck(this,\'start_t\',\'start_time\',\'end_t\',\'end_time\')" checked />All day <br /></div>'+
+					 'When <div id="when"><input type="text" class="calendar-start-date calendar-dates"  value="" size=10 " title="enter the start date" name="sdate" id="sdate">&nbsp;&nbsp;<div class="start-t"></div> to '+
+					  	  '<input type="text" class="calendar-end-date calendar-dates"  value="" size=10 title="enter the end date" name="edate" id="edate">&nbsp;&nbsp;<div class="end-t"></div>'+
+						  '<input type="checkbox" class="calendar-all-day" checked />All day <br /></div>'+
 						  '<br /><div style="margin-left:36px;">Repeats <select size="1" id="repeat" name="repeat_int" onChange="pickREvent(this);">'+
 						  			'<option name="dnrepeat" value="does not repeat">does not repeat</option>'+
 									'<option name="daily"  value="daily">daily</option>'+
@@ -37,6 +38,14 @@ $(function () {
 	    'class': 'calendar-mini',
 	    'mouseleave':function(){ $(this).fadeOut(500); }
 	}).prependTo('body');
+	$('<div>', {
+	    'class': 'calendar-mini',
+	    'mouseleave':function(){ $(this).fadeOut(500); }
+	}).prependTo('body');
+	$('<div>', {
+	    'class': 'time-list',
+	    'mouseleave':function(){ $(this).fadeOut(500); }
+	}).prependTo('body');
 	$( document ).on( "mousemove", function(e) {
 		mouseX = e.pageX;
 		mouseY = e.pageY;
@@ -56,11 +65,92 @@ $(function () {
 			.html(eventForm)
 			.fadeIn(500);
 	}
-	function showMiniCal() {
+	function showMiniCal($el) {
 		$('.calendar-mini')
 			.css('top', mouseY + 5)
 			.css('left', mouseX + 5)
 			.fadeIn(500);
+		addMiniCalListener($el);
+	}
+	function addMiniCalListener($el) {
+		$('.calendar-mini .calendar-day').on('click', function(e){
+			$el.val($(this).attr('data-date'));
+		});
+	}
+	function allDayCheck(checkbox,elem1,name1,elem2,name2){
+		var $startEl = $(elem1),
+			$endEl = $(elem2);
+		if(!$(checkbox).is(':checked')){
+			$startEl.html('<input type="text" class="'+name1+' time-input" size="7" value="??:??" />');
+			$endEl.html('<input type="text" class="'+name2+' time-input" size="7" value="??:??" />');
+		}else{
+			$startEl.html('');
+			$endEl.html('');
+		}
+	}
+	function returnTime(el, settime){
+		var meridiem = '',
+			timeStr = '<select size="6" class="timeList" multiple name="starting_times">',
+			d = new Date(),
+			curr_hour = d.getHours(),
+			curr_min = d.getMinutes(),
+			curr_timeStr = '',
+			amOrPm = 'AM',
+			startingHour = 12,
+			startingMin = '00';
+		curr_min = curr_min + "";
+		if (curr_min.length == 1){
+			curr_min = '0' + curr_min;
+		}
+		if (curr_hour < 12){
+		   meridiem = 'AM';
+		}
+		else{
+		   meridiem = 'PM';
+		}
+		if (curr_hour == 0){
+		   curr_hour = 12;
+		}
+		if (curr_hour > 12){
+		   curr_hour = curr_hour - 12;
+		}
+		if (curr_min <=29){
+			curr_min = '30';
+		}else{
+			curr_min = "00";
+			curr_hour = curr_hour+1;
+		}
+		curr_timeStr = '<option class="'+settime+'-option settime-option" style="display:block" selected value="'+curr_hour + ':' + curr_min + ' ' + meridiem+'">'+curr_hour + ':' + curr_min +  ' ' + meridiem+' ';
+		
+		function incTime(h,m){
+			if (m == "30"){
+				startingHour++;
+				startingMin = "00";
+				if (startingHour>12){
+					startingHour -= 12;
+				}
+			}else{
+				startingMin = "30";
+			}
+		}
+		for (var i=0;i<48;i++){
+			if (i == 24){
+				amOrPm = "PM";
+			}
+			if ((curr_hour == startingHour) && (curr_min == startingMin) && (meridiem == amOrPm)){
+				timeStr += curr_timeStr;
+				incTime(startingHour,startingMin);
+			}else{
+					timeStr += '<option class="'+settime+'-option settime-option" style="display:block" value="'+startingHour + ':' + startingMin + ' ' + amOrPm+'">'+startingHour + ':' + startingMin + ' ' + amOrPm+' ';
+					incTime(startingHour,startingMin);
+			}
+		}
+		timeStr += "</select>";
+		$(el)
+			.css('top', mouseY + 5)
+			.css('left', mouseX + 5)
+			.fadeIn(500)
+			.html(timeStr)
 	}
 	$('td.calendar-day').on('click', function(e) {
 		showCrudBox(['Add'], $(this).attr('data-date'));
@@ -74,8 +164,36 @@ $(function () {
 		if(!$.trim($('calendar-mini').html())) {
 	    	QuickCal('calendar-mini', d.getMonth()+1, d.getFullYear(), 'mini-cal');
 	    }
-	    showMiniCal();
+	    showMiniCal($(this));
 	});
+	$('body').on('click', '.calendar-all-day', function() {
+		allDayCheck(this,'.start-t','start-time','.end-t','end-time')
+	});
+	$('body').on('click', '.time-input', function() {
+		classNames = this.className.split(/\s+/),
+		timeClass = function() { 
+			var cls = $.grep(classNames, function(c, i) {
+    			if ($.inArray(c, classes) !== -1) {
+    				return c;
+    			}
+			})[0];
+			return cls;
+		}();
+		returnTime('.time-list', timeClass);
+	});
+	$('body').on('click', '.settime-option', function() {
+		var settimeClasses = this.className,
+			that = this;
+		$.each(classes, function(i, c) {
+			if (settimeClasses.indexOf(c) !== -1) {
+				$('.'+c).val($(that).val());
+				return false;
+			}
+		});
+	});
+	$('body').on('click', '.close-event-form', function() {
+		$(this).parent().fadeOut(500)
+	})
 });
 
 
@@ -400,76 +518,19 @@ function setVal(e1,e2) {
 	val = e1.value;
 	e2.value = val;
 }
-function returnTime(e){
-	var a_p = "";
-	var timeStr = "<select size='6' id='timeListStart' onclick='setVal(this,this.form.start_time);toggleVisibility(\"timeListStart\");' multiple style='position:absolute;top:193px;left:141px;'  name='starting_times'>";
-	var d = new Date();
-	var curr_hour = d.getHours();
-	var curr_min = d.getMinutes();
-	curr_min = curr_min + "";
-	if (curr_min.length == 1){
-		curr_min = "0" + curr_min;
-	}
-	if (curr_hour < 12){
-	   a_p = "AM";
-	}
-	else{
-	   a_p = "PM";
-	}
-	if (curr_hour == 0){
-	   curr_hour = 12;
-	}
-	if (curr_hour > 12){
-	   curr_hour = curr_hour - 12;
-	}
-	if (curr_min <=29){
-		curr_min = "30";
-	}else{
-		curr_min = "00";
-		curr_hour = curr_hour+1;
-	}
-	var curr_timeStr = "<option style='display:block' selected value='"+curr_hour + " : " + curr_min + " " + a_p+"'>"+curr_hour + " : " + curr_min + " " + a_p+" ";
-	var amOrPm = "AM"
-	var startingHour = 12;
-	var startingMin = "00";
-	function incTime(h,m){
-		if (m == "30"){
-			startingHour++;
-			startingMin = "00";
-			if (startingHour>12){
-				startingHour -= 12;
-			}
-		}else{
-			startingMin = "30";
-		}
-	}
-	for (var i=0;i<48;i++){
-		if (i == 24){
-			amOrPm = "PM";
-		}
-		if ((curr_hour == startingHour) && (curr_min == startingMin) && (a_p == amOrPm)){
-			timeStr += curr_timeStr;
-			incTime(startingHour,startingMin);
-		}else{
-				timeStr += "<option style='display:block' value='"+startingHour + ":" + startingMin + " " + amOrPm+"'>"+startingHour + ":" + startingMin + " " + amOrPm+" ";
-				incTime(startingHour,startingMin);
-		}
-	}
-	timeStr += "</select>";
-	document.getElementById(e).innerHTML = timeStr;
-}
-function returnTimeTo(e){
+
+function returnTimeTo(el){
 	String.prototype.trim = function () { // this is for removing whitespace around the AM or PM user input, if any
     	return this.replace(/^\s*/, "").replace(/\s*$/, "");
 	}
-	var a_p = "";
-	var timeStr = "<select size='6' id='timeListEnd' onclick='setVal(this,this.form.end_time);toggleVisibility(\"timeListEnd\");' multiple style='position:absolute;top:108px;left:335px;'  name='ending_times'>";
-	var start_time = document.getElementById("start_time").value;
-	var startingHour = parseInt(start_time.split(":",1));
-	var startingMin = start_time.split(":").pop().substring(0,3);
-	var amOrPm = start_time.split(":").pop().substring(3).trim(); 
-	var curr_hour = 0;
-	var curr_min = "00";
+	var meridiem = "",
+		timeStr = "<select size='6' class='timeListEnd timeList' onclick='setVal(this,this.form.end_time);toggleVisibility(\"timeListEnd\");' multiple name='ending_times'>",
+		start_time = $('.start-time').val(),
+		startingHour = parseInt(start_time.split(":",1)),
+		startingMin = start_time.split(":").pop().substring(0,3),
+		amOrPm = start_time.split(":").pop().substring(3).trim(),
+		curr_hour = 0,
+		curr_min = "00";
 	function duration(n,hr){  // this function prints the duration of the event
 		if (n == 0) {
 			return "(0 mins)";
@@ -485,7 +546,6 @@ function returnTimeTo(e){
 			}
 		}
 	}
-	//timeStr += "<option style='display:block' value='"+curr_hour + " : " + curr_min + " " + a_p+"'>"+curr_hour + " : " + curr_min + " " + a_p+" ";
 	function incTime(h,m){
 		if (m == "30"){
 			startingHour++;
@@ -512,7 +572,10 @@ function returnTimeTo(e){
 		incTime(startingHour,startingMin);
 	}
 	timeStr += "</select>";
-	document.getElementById(e).innerHTML = timeStr;
+	$(el).html(timeStr)
+		.css('top', mouseY + 5)
+		.css('left', mouseX + 5)
+		.fadeIn(500);
 }
 function pickREvent(time){
 	function fourteenList(){
@@ -583,24 +646,7 @@ function pickREvent(time){
 	} */
 }
 
-function allDayCheck(main,elem1,name1,elem2,name2){	if(!main.checked){
-		/*var el1 = document.createElement('input');
-		var el2 = document.getElementById(elem1);
-		var el3 = document.createElement('input');
-		var el4 = document.getElementById(elem2);
-		el.setAttribute('type', 'text');
-		el.setAttribute('name', name);
-		el.setAttribute('value', '??:??');
-		el.setAttribute('size', '6');
-		//el.setAttribute('display', 'inline');
-		el2.appendChild(el); */
-		document.getElementById(elem1).innerHTML = '<input type="text" name="'+name1+'" id="'+name1+'"size="7" value="??:??" onclick="returnTime(\'timeList\');" /><div id="timeList"></div>';
-		document.getElementById(elem2).innerHTML = '<input type="text" name="'+name2+'" id="'+name2+'"size="7" value="??:??" onclick="returnTimeTo(\'timeListTo\');" /><div id="timeListTo"></div>';
-	}else{
-		document.getElementById(elem1).innerHTML = '';
-		document.getElementById(elem2).innerHTML = '';
-	}
-}
+
 function closeEventList(){
   if (document.getElementById("month_elist")){
     document.getElementById('month_elist').style.display="block";
