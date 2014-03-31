@@ -2,13 +2,13 @@ $(function () {
 	var mouseX = 0,
 		mouseY = 0,
 		classes = ['start-time','end-time'],
+		dynamicEls = ['calendar-crud-box', 'calendar-mini', 'time-list', 'error-message'];
 		eventForm = '<fieldset>'+
-					'<legend>Add Event Form</legend><span class="close-event-form">X</span>'+
+					'<legend>Add Event Form</legend><span class="close-event-form"></span>'+
 					'<form action="" name="actionform" id="actionform">'+ // turn this on!
-					  '<div id="smallcal1" style="position:absolute;visibility:hidden;background-color:white;top:0px;"></div>'+
 					 '<form action="javascript:get(document.getElementById(\'actionform\'));closeEventForm();" name="actionform" id="actionform">'+
 					 'What <input type="text" id="what" /><br /><br />'+
-					 'When <div id="when"><input type="text" class="calendar-start-date calendar-dates"  value="" size=10 " title="enter the start date" name="sdate" id="sdate">&nbsp;&nbsp;<div class="start-t"></div> to '+
+					 'When <div id="when"><input type="text" class="calendar-start-date calendar-dates"  value="" size=10 " title="enter the start date" name="sdate">&nbsp;&nbsp;<div class="start-t"></div> to '+
 					  	  '<input type="text" class="calendar-end-date calendar-dates"  value="" size=10 title="enter the end date" name="edate" id="edate">&nbsp;&nbsp;<div class="end-t"></div>'+
 						  '<input type="checkbox" class="calendar-all-day" checked />All day <br /></div>'+
 						  '<br /><div style="margin-left:36px;">Repeats <select size="1" id="repeat" name="repeat_int" onChange="pickREvent(this);">'+
@@ -27,25 +27,19 @@ $(function () {
 					 '<input value="Save" type="submit" id="submit" name="submit">'+
 					 '</form>'+
 					 '</fieldset>';
-	$('<div>', {
-	    'class': 'calendar-crud-box',
-	    'mouseleave':function(){ $(this).fadeOut(500); }
-	}).prependTo('body');
+
 	$('<div>', {
 	    'class': 'calendar-event-list',
 	}).insertAfter($('.cal1'));
-	$('<div>', {
-	    'class': 'calendar-mini',
-	    'mouseleave':function(){ $(this).fadeOut(500); }
-	}).prependTo('body');
-	$('<div>', {
-	    'class': 'calendar-mini',
-	    'mouseleave':function(){ $(this).fadeOut(500); }
-	}).prependTo('body');
-	$('<div>', {
-	    'class': 'time-list',
-	    'mouseleave':function(){ $(this).fadeOut(500); }
-	}).prependTo('body');
+
+	(function createElements(elArr) {
+		elArr.forEach(function(el) {
+			$('<div>', {
+			    'class': el,
+			    'mouseleave':function(){ $(this).fadeOut(500); }
+			}).prependTo('body');
+		});
+	})(dynamicEls);
 	$( document ).on( "mousemove", function(e) {
 		mouseX = e.pageX;
 		mouseY = e.pageY;
@@ -57,25 +51,26 @@ $(function () {
 		});
 		$('.calendar-crud-box')
 			.html(crudHtml)
-			.offset({top: mouseY + 5, left: mouseX + 5})
+			.css('top', mouseY + 5)
+			.css('left', mouseX + 5)
 			.fadeIn(500);
 	}
 	function showEventForm(theDate) {
 		$('.calendar-event-list')
 			.html(eventForm)
+			.queue(function() {
+				$('.calendar-start-date').val(theDate);
+				$(this).dequeue();
+			})
 			.fadeIn(500);
 	}
-	function showMiniCal($el) {
+	function showMiniCal() {
 		$('.calendar-mini')
 			.css('top', mouseY + 5)
 			.css('left', mouseX + 5)
 			.fadeIn(500);
-		addMiniCalListener($el);
-	}
-	function addMiniCalListener($el) {
-		$('.calendar-mini .calendar-day').on('click', function(e){
-			$el.val($(this).attr('data-date'));
-		});
+		
+		return this;
 	}
 	function allDayCheck(checkbox,elem1,name1,elem2,name2){
 		var $startEl = $(elem1),
@@ -98,6 +93,17 @@ $(function () {
 			amOrPm = 'AM',
 			startingHour = 12,
 			startingMin = '00';
+		var _incTime = function(h,m){
+			if (m == "30"){
+				startingHour++;
+				startingMin = "00";
+				if (startingHour>12){
+					startingHour -= 12;
+				}
+			}else{
+				startingMin = "30";
+			}
+		}
 		curr_min = curr_min + "";
 		if (curr_min.length == 1){
 			curr_min = '0' + curr_min;
@@ -121,28 +127,17 @@ $(function () {
 			curr_hour = curr_hour+1;
 		}
 		curr_timeStr = '<option class="'+settime+'-option settime-option" style="display:block" selected value="'+curr_hour + ':' + curr_min + ' ' + meridiem+'">'+curr_hour + ':' + curr_min +  ' ' + meridiem+' ';
-		
-		function incTime(h,m){
-			if (m == "30"){
-				startingHour++;
-				startingMin = "00";
-				if (startingHour>12){
-					startingHour -= 12;
-				}
-			}else{
-				startingMin = "30";
-			}
-		}
+			
 		for (var i=0;i<48;i++){
 			if (i == 24){
 				amOrPm = "PM";
 			}
 			if ((curr_hour == startingHour) && (curr_min == startingMin) && (meridiem == amOrPm)){
 				timeStr += curr_timeStr;
-				incTime(startingHour,startingMin);
+				_incTime(startingHour,startingMin);
 			}else{
 					timeStr += '<option class="'+settime+'-option settime-option" style="display:block" value="'+startingHour + ':' + startingMin + ' ' + amOrPm+'">'+startingHour + ':' + startingMin + ' ' + amOrPm+' ';
-					incTime(startingHour,startingMin);
+					_incTime(startingHour,startingMin);
 			}
 		}
 		timeStr += "</select>";
@@ -152,33 +147,33 @@ $(function () {
 			.fadeIn(500)
 			.html(timeStr)
 	}
-	$('td.calendar-day').on('click', function(e) {
+	$('body').on('click', 'td.calendar-day', function(e) {
 		showCrudBox(['Add'], $(this).attr('data-date'));
 	});
-	$( ".calendar-crud-box" ).on( "click", function(e) {
+	$('body').on( "click", ".calendar-crud-clicked", function(e) {
 		e.preventDefault();
 	    showEventForm($(this).attr('data-date'));
 	});
 	$( 'body' ).on( "click", '.calendar-dates', function(e) {
 		var d = new Date();
 		if(!$.trim($('calendar-mini').html())) {
-	    	QuickCal('calendar-mini', d.getMonth()+1, d.getFullYear(), 'mini-cal');
+	    	QuickCal('calendar-mini', d.getMonth()+1, d.getFullYear(), 'mini-cal', $(this));
 	    }
-	    showMiniCal($(this));
+	    showMiniCal();
 	});
 	$('body').on('click', '.calendar-all-day', function() {
 		allDayCheck(this,'.start-t','start-time','.end-t','end-time')
 	});
 	$('body').on('click', '.time-input', function() {
-		classNames = this.className.split(/\s+/),
-		timeClass = function() { 
-			var cls = $.grep(classNames, function(c, i) {
-    			if ($.inArray(c, classes) !== -1) {
-    				return c;
-    			}
-			})[0];
-			return cls;
-		}();
+		var classNames = this.className.split(/\s+/),
+			timeClass = function() { 
+				var cls = $.grep(classNames, function(c, i) {
+	    			if ($.inArray(c, classes) !== -1) {
+	    				return c;
+	    			}
+				})[0];
+				return cls;
+			}();
 		returnTime('.time-list', timeClass);
 	});
 	$('body').on('click', '.settime-option', function() {
@@ -193,17 +188,16 @@ $(function () {
 	});
 	$('body').on('click', '.close-event-form', function() {
 		$(this).parent().fadeOut(500)
-	})
+	});
+	$('.calendar-dates').keyup(function() {
+		console.log(this.value)
+	});
 });
 
 
 
 
 
-function closeCalDiv(thediv){
-document.getElementById(thediv).innerHTML = "";
-  
-}
 function doDateCheck(from, to) {
   if (Date.parse(from.value) <= Date.parse(to.value)) {
     return true;

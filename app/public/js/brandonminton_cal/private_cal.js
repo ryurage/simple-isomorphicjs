@@ -4,7 +4,7 @@ var calProto = {
     year: new Date().getFullYear(),
     obj: 'body'
 };
-var QuickCal = function(obj, month, year, calsize) {
+var QuickCal = function(obj, month, year, calsize, $el) {
     var cal = cal = Object.create( calProto ); // our factory function
     
     // public variables
@@ -12,6 +12,7 @@ var QuickCal = function(obj, month, year, calsize) {
     cal.year = year || cal.year;
     cal.html = '';
     cal.calsize = calsize || '';
+    cal.replaceEl = $el || null;
     
     // private variables
     var daysInMonth = new Date(cal.year, cal.month, 0).getDate(),
@@ -49,31 +50,31 @@ var QuickCal = function(obj, month, year, calsize) {
             };
         return fillArray();
     };
-    var handleControls = function() {
+    var _handleControls = function() {
         var decYear = cal.year - 1,
             incYear = cal.year + 1,
             decMonth = cal.month - 1,
             incMonth = cal.month + 1,
             theMonth = cal.month,
             theYear = cal.year;
-		
+
         $('.prevYear').click( function(e) {
             e.preventDefault();
-            QuickCal(obj, cal.month, decYear);
+            QuickCal(obj, cal.month, decYear, calsize, cal.replaceEl);
         });
          $('.nextYear').click( function(e) {
             e.preventDefault();
-            QuickCal(obj, cal.month, incYear);
+            QuickCal(obj, cal.month, incYear, calsize, cal.replaceEl);
         });
          $('.prevMonth').click( function(e) {
             e.preventDefault();
-             if (cal.month === 1) {
+            if (cal.month === 1) {
                 theMonth = 12;
                 theYear = decYear;
-             } else {
+            } else {
                  theMonth = decMonth;
-             }
-            QuickCal(obj, theMonth, theYear);
+            }
+            QuickCal(obj, theMonth, theYear, calsize, cal.replaceEl);
         });
         $('.nextMonth').click( function(e) {
             e.preventDefault();
@@ -83,9 +84,37 @@ var QuickCal = function(obj, month, year, calsize) {
              } else {
                  theMonth = incMonth;
              }
-             QuickCal(obj, theMonth, theYear);
+             QuickCal(obj, theMonth, theYear, calsize, cal.replaceEl);
         });
         
+        return false;
+    };
+    var _addListeners = function() {
+        if (cal.replaceEl !== null) { // this is then a temp Calendar
+            $('.calendar-mini .calday').on('click', function(e){
+                cal.replaceEl.val($(this).attr('data-date'));
+                var values = [];
+                $('.calendar-dates').each(function() {
+                    values.push($(this).val());
+                });
+                if (values.indexOf("") === -1) {
+                    if (Date.parse(values[0]) <= Date.parse(values[1])) {
+                        if ($('.error-message').is(":visible")) {
+                            $('.error-message').fadeOut(500);
+                        }
+                        return true;
+                    } else {
+                        var elOffset = $('.calendar-end-date').offset();
+                        $('.error-message')
+                            .css('top', elOffset.top - 70)
+                            .css('left', elOffset.left - 30)
+                            .text('The end date must be after the start date.')
+                            .fadeIn(500);
+                    }
+                }
+            });
+        }
+
         return false;
     };
     
@@ -118,10 +147,11 @@ var QuickCal = function(obj, month, year, calsize) {
 			for (var i = 0; i < 7; i++) {
 				// if today
                 var cellValue = weekArr[j][i],
-                    aclass = (cal.day == cellValue && proto.month == cal.month && proto.year == cal.year) ? ' class="today calendar-day"' : ' class="calendar-day"',
+                    dayClass = (cal.replaceEl !== null) ? ' class="calday"' : ' class="calendar-day"',  // make the day Class different if it's a temp Calendar
+                    aClass = (cal.day == cellValue && proto.month == cal.month && proto.year == cal.year) ? ' class="today calendar-day"' : dayClass,
                     dataAttr = ' data-date="' + cal.month + '/' + cellValue + '/' + cal.year + '"';
                 //cellValue = (cellValue < 10 && (toString.call(cellValue) == '[object Number]')) ? '0' + cellValue : cellValue;
-                cal.html += (cellValue !== '') ? '<td' + aclass + dataAttr + '>' + cellValue + '</td>' : '<td></td>';
+                cal.html += (cellValue !== '') ? '<td' + aClass + dataAttr + '>' + cellValue + '</td>' : '<td></td>';
                 }
             cal.html += '</tr>';
 		}
@@ -143,7 +173,8 @@ var QuickCal = function(obj, month, year, calsize) {
         } else {
             $(obj).html(cal.html);
         }
-        handleControls();
+        _handleControls();
+        _addListeners();
         return this;
     };
     

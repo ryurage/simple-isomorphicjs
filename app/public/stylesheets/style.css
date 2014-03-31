@@ -362,6 +362,41 @@ nav:after {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
 }
+.admin .error-message {
+  position: absolute;
+  padding: 10px;
+  margin: 1em 0 2em;
+  border: 5px solid #a4001d;
+  color: #333;
+  background: #fff;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  width: 300px;
+  display: none;
+}
+.admin .error-message:before {
+  content: "";
+  position: absolute;
+  bottom: -20px;
+  left: 40px;
+  border-width: 20px 20px 0;
+  border-style: solid;
+  border-color: #a4001d transparent;
+  display: block;
+  width: 0;
+}
+.admin .error-message:after {
+  content: "";
+  position: absolute;
+  bottom: -13px;
+  left: 47px;
+  border-width: 13px 13px 0;
+  border-style: solid;
+  border-color: #fff transparent;
+  display: block;
+  width: 0;
+}
 .calendar {
   /** configure the width **/
 
@@ -558,7 +593,8 @@ legend {
   display: none;
 }
 /***** New Styles ****/
-.calendar-day {
+.calendar-day,
+.calday {
   cursor: pointer;
 }
 .calendar-crud-box {
@@ -593,5 +629,19 @@ legend {
 }
 .close-event-form {
   float: right;
+  margin-top: -25px;
+  margin-right: -20px;
   cursor: pointer;
+  color: #fff;
+  border: 1px solid #AEAEAE;
+  border-radius: 30px;
+  background: #605F61;
+  font-size: 31px;
+  font-weight: bold;
+  display: inline-block;
+  line-height: 0px;
+  padding: 11px 3px;
+}
+.close-event-form:before {
+  content: "×";
 }

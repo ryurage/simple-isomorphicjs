@@ -3,7 +3,8 @@
 	<head>
 		<title>{{title}}</title>
 		<link rel='stylesheet' href='/stylesheets/style.css' />
-		<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+		<!--<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>-->
+		<script type="text/javascript" src="/js/jquery_1-9.js"></script>
         <script src="/js/admin.js" type="text/javascript"></script>
         <script src="/js/brandonminton_cal/private_cal.js" type="text/javascript"></script>
         <script src="/js/brandonminton_cal/library.js" type="text/javascript"></script>
