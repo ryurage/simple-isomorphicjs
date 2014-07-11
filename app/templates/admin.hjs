@@ -3,8 +3,10 @@
 	<head>
 		<title>{{title}}</title>
 		<link rel='stylesheet' href='/stylesheets/style.css' />
-		<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+		<script src="/js/jquery-2.1.1.min.js"></script>
         <script src="/js/admin.js" type="text/javascript"></script>
+        <script src="/js/custom.js" type="text/javascript"></script>
+        <script src="/js/AssetManager.js" type="text/javascript"></script>
         <script src="/js/brandonminton_cal/public_cal.js" type="text/javascript"></script>
 	</head>
 	<body class="admin">

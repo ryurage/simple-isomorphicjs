@@ -1,4 +1,4 @@
-<form action="/admin" method="post" enctype="multipart/form-data">
+<form class="form-page" action="/admin" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="formsubmitted" value="yes">
 	<input type="hidden" name="currentPicture" value="{{picture}}">
 	<input type="hidden" name="ID" value="{{ID}}">
@@ -6,13 +6,14 @@
 	<input type="text" name="title" value="{{title}}" /><br />
 	Text:<br />
 	<textarea name="text">{{text}}</textarea><br />
-	Picture:<br />
-	<input type="file" name="picture" /><br />{{{pictureTag}}}<br />
+	Assets:<br />
+	<input type="button" class="asset-manager-inp" name="asset_manager" value="Open Asset Manager" /><br />
+	<!--<input type="file" name="picture" /><br />{{{pictureTag}}}<br />-->
 	Menu Type:<br />
 	<select name="type">
 		{{{type}}}
 		{{{defaultmenu}}}
 		{{{menulist}}}
 	</select><br /><br />
-	<input type="submit" value="submit" />
+	<input class="submit-page" type="submit" value="submit" />
 </form>

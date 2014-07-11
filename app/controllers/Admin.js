@@ -113,8 +113,8 @@ module.exports = BaseController.extend({
 							text: content.text,
 							title: content.title,
 							type: '<option value="' + content.type + '">' + content.type + '</option>',
-							picture: content.picture,
-							pictureTag: content.picture != '' ? '<img class="list-picture" src="' + content.picture + '" />' : '',
+							//picture: content.picture,
+							//pictureTag: content.picture != '' ? '<img class="list-picture" src="' + content.picture + '" />' : '',
 							defaultmenu: menuItems,
 							menulist: menu
 						}, function(err, html) {
@@ -139,11 +139,12 @@ module.exports = BaseController.extend({
 			}
 		}
 		if(req.body && req.body.formsubmitted && req.body.formsubmitted === 'yes') {
+			
 			var data = {
 				title: req.body.title,
 				text: req.body.text,
 				type: req.body.type,
-				picture: this.handleFileUpload(req),
+				asset_obj: this.updateAssetObject(req),
 				_id: req.body.ID
 			};
 			contentModel[req.body.ID != '' ? 'update' : 'insert']( data, function() {
@@ -161,15 +162,42 @@ module.exports = BaseController.extend({
 		}
 	},
 	handleFileUpload: function(req) {
-		if(!req.files || !req.files.picture || !req.files.picture.name) {
+		var arr = [], obj, data, fileName, uid, dir;
+		if(!req.files || req.files === '') {
 			return req.body.currentPicture || '';
 		}
-		var data = fs.readFileSync(req.files.picture.path);
-		var fileName = req.files.picture.name;
-		var uid = crypto.randomBytes(10).toString('hex');
-		var dir = __dirname + "/../public/uploads/" + uid;
-		fs.mkdirSync(dir, '0777');
-		fs.writeFileSync(dir + "/" + fileName, data);
-		return '/uploads/' + uid + "/" + fileName;
+		for (var key in req.files) {
+			if (req.files.hasOwnProperty(key)) {
+				var obj = req.files[key];
+				if (obj.hasOwnProperty('name') && obj.name !== ''){
+			      	fileName = obj.name;
+			      	data = fs.readFileSync(obj.path);
+					uid = crypto.randomBytes(10).toString('hex');
+					dir = __dirname + "/../public/uploads/" + uid;
+					//fs.mkdirSync(dir, '0777');
+					//fs.writeFileSync(dir + "/" + fileName, data);
+					obj = {};
+					obj[fileName] = '/uploads/' + uid + "/" + fileName;
+					arr.push(obj);
+			    }
+		   	}
+		}
+		return arr;
+	},
+	updateAssetObject: function(req){
+		var pictures = this.handleFileUpload(req),
+			asset_obj = JSON.parse(req.body.asset_obj);
+			
+		asset_obj.images.forEach(function (key) { // add a URI to the asset object
+    		var ao = key;
+		    pictures.forEach(function (key){
+		        var pic = key,
+		            addr = pic[ao['img_name']];
+		        if (addr) {
+		            ao['uri'] = addr;
+		        }
+		    });
+		});
+		return JSON.stringify(asset_obj);
 	}
 });

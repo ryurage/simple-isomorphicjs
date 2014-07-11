@@ -11,4 +11,8 @@ module.exports.isBlank = function() {
 	String.prototype.isBlank = function() {
     	return /^\s*$/.test(this);
 	}
+};
+module.exports.randSuffix = function(length, current) {
+    current = current || '';
+    return length ? rand(--length, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz".charAt(Math.floor(Math.random() * 60)) + current) : current;
 }
