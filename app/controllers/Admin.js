@@ -147,9 +147,9 @@ module.exports = BaseController.extend({
 				asset_obj: this.updateAssetObject(req),
 				_id: req.body.ID
 			};
-			contentModel[req.body.ID != '' ? 'update' : 'insert']( data, function() {
+			/*contentModel[req.body.ID != '' ? 'update' : 'insert']( data, function() {
 				returnTheForm();
-			});
+			});*/
 		} else {
 			returnTheForm();
 		}
